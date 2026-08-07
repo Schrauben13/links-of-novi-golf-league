@@ -2,8 +2,14 @@ import Link from "next/link";
 import { requireApprovedPlayer } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { signOut } from "@/app/actions";
+import { updatePassword } from "./actions";
+import SubmitButton from "@/components/submit-button";
 
-export default async function ProfilePage() {
+export default async function ProfilePage({
+  searchParams,
+}: {
+  searchParams: { message?: string };
+}) {
   const { player } = await requireApprovedPlayer("/profile");
 
   const supabase = await createClient();
@@ -42,6 +48,70 @@ export default async function ProfilePage() {
             </Link>
           </p>
         </div>
+      </div>
+
+      <div className="flex flex-col gap-4 rounded-xl border border-fairway-200 bg-white p-4">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-fairway-500">
+          Change password
+        </h2>
+        <form action={updatePassword} className="flex flex-col gap-3">
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="current_password" className="text-sm font-medium text-fairway-700">
+              Current password
+            </label>
+            <input
+              id="current_password"
+              name="current_password"
+              type="password"
+              autoComplete="current-password"
+              required
+              className="rounded-lg border border-fairway-200 bg-white px-4 py-3 text-base text-fairway-800 outline-none focus:border-fairway-500 focus:ring-2 focus:ring-fairway-200"
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="new_password" className="text-sm font-medium text-fairway-700">
+              New password
+            </label>
+            <input
+              id="new_password"
+              name="new_password"
+              type="password"
+              autoComplete="new-password"
+              minLength={6}
+              required
+              className="rounded-lg border border-fairway-200 bg-white px-4 py-3 text-base text-fairway-800 outline-none focus:border-fairway-500 focus:ring-2 focus:ring-fairway-200"
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="confirm_password" className="text-sm font-medium text-fairway-700">
+              Confirm new password
+            </label>
+            <input
+              id="confirm_password"
+              name="confirm_password"
+              type="password"
+              autoComplete="new-password"
+              minLength={6}
+              required
+              className="rounded-lg border border-fairway-200 bg-white px-4 py-3 text-base text-fairway-800 outline-none focus:border-fairway-500 focus:ring-2 focus:ring-fairway-200"
+            />
+          </div>
+
+          {searchParams.message && (
+            <p className="rounded-lg bg-fairway-100 px-4 py-3 text-sm text-fairway-700">
+              {searchParams.message}
+            </p>
+          )}
+
+          <SubmitButton
+            pendingText="Updating…"
+            className="rounded-lg bg-fairway-700 px-4 py-3 text-base font-semibold text-cream-50 active:bg-fairway-800"
+          >
+            Update password
+          </SubmitButton>
+        </form>
       </div>
 
       <form action={signOut}>
