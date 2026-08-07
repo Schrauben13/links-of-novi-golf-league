@@ -11,7 +11,7 @@ export default async function RoundDetailPage({
 }: {
   params: { roundId: string };
 }) {
-  await requireApprovedPlayer(`/schedule/${params.roundId}`);
+  const { player } = await requireApprovedPlayer(`/schedule/${params.roundId}`);
 
   const supabase = await createClient();
 
@@ -33,12 +33,14 @@ export default async function RoundDetailPage({
     .order("name", { ascending: true, foreignTable: "players" });
 
   const groups = new Map<string, GroupedPlayer[]>();
+  let isPlayerInRound = false;
   for (const row of groupRows ?? []) {
     const key = row.tee_time_group !== null ? String(row.tee_time_group) : "Unassigned";
-    const player = row.players as unknown as GroupedPlayer | null;
-    if (!player) continue;
+    const rowPlayer = row.players as unknown as GroupedPlayer | null;
+    if (!rowPlayer) continue;
+    if (rowPlayer.id === player.id) isPlayerInRound = true;
     const list = groups.get(key) ?? [];
-    list.push(player);
+    list.push(rowPlayer);
     groups.set(key, list);
   }
 
@@ -56,6 +58,15 @@ export default async function RoundDetailPage({
           {teeTime ? ` · ${teeTime}` : ""}
         </p>
       </div>
+
+      {round.status === "live" && isPlayerInRound && (
+        <Link
+          href={`/schedule/${round.id}/score`}
+          className="rounded-lg bg-fairway-700 px-4 py-3 text-center text-base font-semibold text-cream-50 active:bg-fairway-800"
+        >
+          Enter your score
+        </Link>
+      )}
 
       {groups.size === 0 ? (
         <p className="rounded-xl border border-dashed border-fairway-200 bg-cream-100 p-6 text-center text-sm text-fairway-500">

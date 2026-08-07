@@ -14,6 +14,24 @@ export type Database = {
   }
   public: {
     Tables: {
+      course_holes: {
+        Row: {
+          course_name: string
+          hole_number: number
+          par: number
+        }
+        Insert: {
+          course_name: string
+          hole_number: number
+          par: number
+        }
+        Update: {
+          course_name?: string
+          hole_number?: number
+          par?: number
+        }
+        Relationships: []
+      }
       players: {
         Row: {
           approved: boolean
