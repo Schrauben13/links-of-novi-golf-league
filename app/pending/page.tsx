@@ -35,7 +35,7 @@ export default async function PendingPage() {
       <form action={signOut}>
         <button
           type="submit"
-          className="mt-2 rounded-lg border border-fairway-200 px-4 py-2 text-sm font-medium text-fairway-700"
+          className="mt-2 min-h-[44px] rounded-lg border border-fairway-200 px-4 py-2 text-sm font-medium text-fairway-700"
         >
           Sign out
         </button>

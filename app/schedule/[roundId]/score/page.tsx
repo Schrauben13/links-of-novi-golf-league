@@ -1,8 +1,8 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireApprovedPlayer } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import ScoreCard from "@/components/score-card";
+import BackLink from "@/components/back-link";
 
 export default async function ScorePage({
   params,
@@ -15,21 +15,20 @@ export default async function ScorePage({
 
   const supabase = await createClient();
 
-  const { data: round } = await supabase
+  const { data: round, error: roundError } = await supabase
     .from("rounds")
     .select("id, course_name, status")
     .eq("id", params.roundId)
     .single();
 
+  if (roundError && roundError.code !== "PGRST116") {
+    throw new Error(`Couldn't load this round: ${roundError.message}`);
+  }
   if (!round) {
     notFound();
   }
 
-  const backLink = (
-    <Link href={`/schedule/${round.id}`} className="text-sm font-medium text-fairway-500">
-      ← Back to round
-    </Link>
-  );
+  const backLink = <BackLink href={`/schedule/${round.id}`}>← Back to round</BackLink>;
 
   if (round.status !== "live") {
     return (
@@ -83,7 +82,10 @@ export default async function ScorePage({
   const opponentName = (opponent?.players as unknown as { name: string } | null)?.name;
   const targetName = (myMatchPlayer.players as unknown as { name: string } | null)?.name;
 
-  const [{ data: holes }, { data: existingScores }] = await Promise.all([
+  const [
+    { data: holes, error: holesError },
+    { data: existingScores, error: scoresError },
+  ] = await Promise.all([
     supabase
       .from("course_holes")
       .select("hole_number, par")
@@ -95,6 +97,10 @@ export default async function ScorePage({
       .eq("round_id", round.id)
       .eq("player_id", targetPlayerId),
   ]);
+
+  if (holesError || scoresError) {
+    throw new Error(`Couldn't load your scorecard: ${(holesError ?? scoresError)?.message}`);
+  }
 
   const initialStrokes: Record<number, number | null> = {};
   for (const row of existingScores ?? []) {

@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { createMatch } from "./actions";
+import BackLink from "@/components/back-link";
+import SubmitButton from "@/components/submit-button";
 
 type Player = { id: string; name: string; team_id: string | null };
 
@@ -23,7 +25,7 @@ function PlayerSlot({
       <select
         name={`${prefix}_player_id`}
         defaultValue={defaultPlayerId ?? ""}
-        className="rounded-lg border border-fairway-200 bg-white px-3 py-2 text-sm text-fairway-800 outline-none focus:border-fairway-500 focus:ring-2 focus:ring-fairway-200"
+        className="rounded-lg border border-fairway-200 bg-white px-3 py-2.5 text-sm text-fairway-800 outline-none focus:border-fairway-500 focus:ring-2 focus:ring-fairway-200"
       >
         <option value="">— Guest / substitute (enter below) —</option>
         {players.map((p) => (
@@ -36,14 +38,14 @@ function PlayerSlot({
         type="text"
         name={`${prefix}_guest_name`}
         placeholder="Guest name (if not selected above)"
-        className="rounded-lg border border-fairway-200 bg-white px-3 py-2 text-sm text-fairway-800 outline-none focus:border-fairway-500 focus:ring-2 focus:ring-fairway-200"
+        className="rounded-lg border border-fairway-200 bg-white px-3 py-2.5 text-sm text-fairway-800 outline-none focus:border-fairway-500 focus:ring-2 focus:ring-fairway-200"
       />
       <input
         type="number"
         step="0.1"
         name={`${prefix}_handicap`}
         placeholder="Handicap override (optional; required for guests)"
-        className="rounded-lg border border-fairway-200 bg-white px-3 py-2 text-sm text-fairway-800 outline-none focus:border-fairway-500 focus:ring-2 focus:ring-fairway-200"
+        className="rounded-lg border border-fairway-200 bg-white px-3 py-2.5 text-sm text-fairway-800 outline-none focus:border-fairway-500 focus:ring-2 focus:ring-fairway-200"
       />
     </div>
   );
@@ -60,15 +62,21 @@ export default async function NewMatchPage({
 
   const supabase = await createClient();
 
-  const { data: round } = await supabase
+  const { data: round, error: roundError } = await supabase
     .from("rounds")
     .select("id, date, course_name")
     .eq("id", params.roundId)
     .single();
 
+  if (roundError && roundError.code !== "PGRST116") {
+    throw new Error(`Couldn't load this round: ${roundError.message}`);
+  }
   if (!round) notFound();
 
-  const [{ data: teams }, { data: players }] = await Promise.all([
+  const [
+    { data: teams, error: teamsError },
+    { data: players, error: playersError },
+  ] = await Promise.all([
     supabase.from("teams").select("id, name").order("name"),
     supabase
       .from("players")
@@ -77,6 +85,10 @@ export default async function NewMatchPage({
       .eq("is_guest", false)
       .order("name"),
   ]);
+
+  if (teamsError || playersError) {
+    throw new Error(`Couldn't load teams or players: ${(teamsError ?? playersError)?.message}`);
+  }
 
   const teamAId = searchParams.team_a;
   const teamBId = searchParams.team_b;
@@ -88,14 +100,21 @@ export default async function NewMatchPage({
   return (
     <div className="mx-auto flex w-full max-w-sm flex-col gap-6 py-6">
       <div>
-        <Link href={`/schedule/${round.id}`} className="text-sm font-medium text-fairway-500">
-          ← Round
-        </Link>
+        <BackLink href={`/schedule/${round.id}`}>← Round</BackLink>
         <h1 className="mt-1 text-2xl font-bold text-fairway-800">Add a match</h1>
         <p className="text-sm text-fairway-500">
           {round.course_name} · {round.date}
         </p>
       </div>
+
+      {(teams ?? []).length < 2 && (
+        <p className="rounded-xl border border-dashed border-fairway-200 bg-cream-100 p-4 text-center text-sm text-fairway-500">
+          You need at least 2 teams before you can set up a match.{" "}
+          <Link href="/admin/teams" className="font-medium text-accent-dark underline underline-offset-2">
+            Create teams
+          </Link>
+        </p>
+      )}
 
       {searchParams.message && (
         <p className="rounded-lg bg-fairway-100 px-4 py-3 text-sm text-fairway-700">
@@ -189,12 +208,12 @@ export default async function NewMatchPage({
             />
           </div>
 
-          <button
-            type="submit"
+          <SubmitButton
+            pendingText="Creating match…"
             className="rounded-lg bg-fairway-700 px-4 py-3 text-base font-semibold text-cream-50 active:bg-fairway-800"
           >
             Create match
-          </button>
+          </SubmitButton>
         </form>
       )}
     </div>

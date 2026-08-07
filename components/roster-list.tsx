@@ -41,7 +41,11 @@ export default function RosterList({ players }: { players: Player[] }) {
         />
       </div>
 
-      {filtered.length === 0 ? (
+      {players.length === 0 ? (
+        <p className="rounded-xl border border-dashed border-fairway-200 bg-cream-100 p-6 text-center text-sm text-fairway-500">
+          No approved players yet.
+        </p>
+      ) : filtered.length === 0 ? (
         <p className="rounded-xl border border-dashed border-fairway-200 bg-cream-100 p-6 text-center text-sm text-fairway-500">
           No players match &ldquo;{query}&rdquo;.
         </p>

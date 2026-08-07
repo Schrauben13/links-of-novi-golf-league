@@ -1,5 +1,6 @@
 import { requireAdmin } from "@/lib/auth";
 import { createRound } from "./actions";
+import SubmitButton from "@/components/submit-button";
 
 const COURSES = ["East", "West", "South"];
 
@@ -73,12 +74,12 @@ export default async function NewRoundPage({
           </p>
         )}
 
-        <button
-          type="submit"
+        <SubmitButton
+          pendingText="Creating…"
           className="rounded-lg bg-fairway-700 px-4 py-3 text-base font-semibold text-cream-50 active:bg-fairway-800"
         >
           Next: pair matches
-        </button>
+        </SubmitButton>
       </form>
     </div>
   );

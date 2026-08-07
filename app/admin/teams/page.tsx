@@ -1,6 +1,7 @@
 import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { createTeam, assignPlayerToTeam } from "./actions";
+import SubmitButton from "@/components/submit-button";
 
 export default async function TeamsPage({
   searchParams,
@@ -11,7 +12,10 @@ export default async function TeamsPage({
 
   const supabase = await createClient();
 
-  const [{ data: teams }, { data: players }] = await Promise.all([
+  const [
+    { data: teams, error: teamsError },
+    { data: players, error: playersError },
+  ] = await Promise.all([
     supabase.from("teams").select("id, name").order("name"),
     supabase
       .from("players")
@@ -20,6 +24,10 @@ export default async function TeamsPage({
       .eq("is_guest", false)
       .order("name"),
   ]);
+
+  if (teamsError || playersError) {
+    throw new Error(`Couldn't load teams: ${(teamsError ?? playersError)?.message}`);
+  }
 
   const rosterByTeam = new Map<string, { id: string; name: string }[]>();
   const unassigned: { id: string; name: string }[] = [];
@@ -131,12 +139,12 @@ export default async function TeamsPage({
             </select>
           </div>
 
-          <button
-            type="submit"
+          <SubmitButton
+            pendingText="Creating team…"
             className="rounded-lg bg-fairway-700 px-4 py-3 text-base font-semibold text-cream-50 active:bg-fairway-800"
           >
             Create team
-          </button>
+          </SubmitButton>
         </form>
       </section>
 
@@ -189,12 +197,12 @@ export default async function TeamsPage({
             </select>
           </div>
 
-          <button
-            type="submit"
+          <SubmitButton
+            pendingText="Updating…"
             className="rounded-lg border border-fairway-200 px-4 py-3 text-sm font-medium text-fairway-700"
           >
             Update
-          </button>
+          </SubmitButton>
         </form>
       </section>
 

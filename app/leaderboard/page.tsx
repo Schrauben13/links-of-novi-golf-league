@@ -9,13 +9,17 @@ export default async function LeaderboardPage() {
 
   const supabase = await createClient();
 
-  const { data: liveRound } = await supabase
+  const { data: liveRound, error: liveRoundError } = await supabase
     .from("rounds")
     .select("id, date, course_name, tee_time, status")
     .eq("status", "live")
     .order("date", { ascending: false })
     .limit(1)
     .maybeSingle();
+
+  if (liveRoundError) {
+    throw new Error(`Couldn't load the leaderboard: ${liveRoundError.message}`);
+  }
 
   if (!liveRound) {
     return (
@@ -34,10 +38,14 @@ export default async function LeaderboardPage() {
     );
   }
 
-  const { data: matches } = await supabase
+  const { data: matches, error: matchesError } = await supabase
     .from("match_team_totals")
     .select("*")
     .eq("round_id", liveRound.id);
+
+  if (matchesError) {
+    throw new Error(`Couldn't load live match points: ${matchesError.message}`);
+  }
 
   const teeTime = formatTeeTime(liveRound.tee_time);
 

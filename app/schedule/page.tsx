@@ -7,12 +7,16 @@ export default async function SchedulePage() {
   const { player } = await requireApprovedPlayer("/schedule");
 
   const supabase = await createClient();
-  const { data: rounds } = await supabase
+  const { data: rounds, error } = await supabase
     .from("rounds")
     .select("id, date, course_name, tee_time, status")
     .in("status", ["upcoming", "live"])
     .order("date", { ascending: true })
     .order("tee_time", { ascending: true });
+
+  if (error) {
+    throw new Error(`Couldn't load the schedule: ${error.message}`);
+  }
 
   const list = rounds ?? [];
 
@@ -23,7 +27,7 @@ export default async function SchedulePage() {
         {player.is_admin && (
           <Link
             href="/admin/rounds/new"
-            className="rounded-lg bg-fairway-700 px-3 py-2 text-sm font-semibold text-cream-50 active:bg-fairway-800"
+            className="flex min-h-[44px] items-center rounded-lg bg-fairway-700 px-3 text-sm font-semibold text-cream-50 active:bg-fairway-800"
           >
             + New round
           </Link>

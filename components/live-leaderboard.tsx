@@ -15,10 +15,19 @@ export default function LiveLeaderboard({
 }) {
   const supabase = useMemo(() => createClient(), []);
   const [matches, setMatches] = useState<MatchTotals[]>(initialMatches);
+  const [staleError, setStaleError] = useState(false);
 
   useEffect(() => {
     async function refetch() {
-      const { data } = await supabase.from("match_team_totals").select("*").eq("round_id", roundId);
+      const { data, error } = await supabase
+        .from("match_team_totals")
+        .select("*")
+        .eq("round_id", roundId);
+      if (error) {
+        setStaleError(true);
+        return;
+      }
+      setStaleError(false);
       if (data) setMatches(data);
     }
 
@@ -36,7 +45,11 @@ export default function LiveLeaderboard({
           refetch();
         },
       )
-      .subscribe();
+      .subscribe((status) => {
+        if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+          setStaleError(true);
+        }
+      });
 
     return () => {
       supabase.removeChannel(channel);
@@ -53,6 +66,18 @@ export default function LiveLeaderboard({
 
   return (
     <div className="flex flex-col gap-4">
+      {staleError && (
+        <p className="rounded-lg bg-accent/10 px-4 py-3 text-sm text-fairway-700">
+          Live updates paused &mdash; scores may be out of date.{" "}
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="font-medium underline underline-offset-2"
+          >
+            Refresh
+          </button>
+        </p>
+      )}
       {matches.map((m) => (
         <div key={m.match_id} className="rounded-xl border border-fairway-200 bg-white p-4">
           <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-fairway-500">

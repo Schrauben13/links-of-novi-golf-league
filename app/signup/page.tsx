@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { signup } from "./actions";
+import SubmitButton from "@/components/submit-button";
 
 export default function SignupPage({
   searchParams,
@@ -65,12 +66,12 @@ export default function SignupPage({
           </p>
         )}
 
-        <button
-          type="submit"
+        <SubmitButton
+          pendingText="Signing up…"
           className="mt-2 rounded-lg bg-fairway-700 px-4 py-3 text-base font-semibold text-cream-50 transition-colors active:bg-fairway-800"
         >
           Sign up
-        </button>
+        </SubmitButton>
       </form>
 
       <p className="text-center text-sm text-fairway-500">

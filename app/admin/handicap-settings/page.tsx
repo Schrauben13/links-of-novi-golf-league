@@ -1,6 +1,7 @@
 import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { updateHandicapSettings } from "./actions";
+import SubmitButton from "@/components/submit-button";
 
 export default async function HandicapSettingsPage({
   searchParams,
@@ -97,12 +98,12 @@ export default async function HandicapSettingsPage({
           </p>
         )}
 
-        <button
-          type="submit"
+        <SubmitButton
+          pendingText="Saving…"
           className="rounded-lg bg-fairway-700 px-4 py-3 text-base font-semibold text-cream-50 active:bg-fairway-800"
         >
           Save
-        </button>
+        </SubmitButton>
       </form>
     </div>
   );

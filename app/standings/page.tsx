@@ -6,12 +6,16 @@ export default async function StandingsPage() {
   await requireApprovedPlayer("/standings");
 
   const supabase = await createClient();
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("player_stats")
     .select("player_id, name, handicap, rounds_played, scoring_average, match_wins, match_losses, match_halves, total_hole_points")
     .order("match_wins", { ascending: false })
     .order("total_hole_points", { ascending: false })
     .order("name", { ascending: true });
+
+  if (error) {
+    throw new Error(`Couldn't load stats: ${error.message}`);
+  }
 
   const rows = data ?? [];
 
@@ -21,7 +25,7 @@ export default async function StandingsPage() {
 
       {rows.length === 0 ? (
         <p className="rounded-xl border border-dashed border-fairway-200 bg-cream-100 p-6 text-center text-sm text-fairway-500">
-          No completed rounds yet.
+          No approved players yet.
         </p>
       ) : (
         <div className="overflow-x-auto rounded-xl border border-fairway-200 bg-white">

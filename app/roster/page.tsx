@@ -7,10 +7,14 @@ export default async function RosterPage() {
   const { player } = await requireApprovedPlayer("/roster");
 
   const supabase = await createClient();
-  const { data: players } = await supabase
+  const { data: players, error } = await supabase
     .from("player_handicaps")
     .select("player_id, name, handicap")
     .order("name", { ascending: true });
+
+  if (error) {
+    throw new Error(`Couldn't load the roster: ${error.message}`);
+  }
 
   return (
     <div className="flex flex-col gap-4 py-6">
@@ -19,7 +23,7 @@ export default async function RosterPage() {
         {player.is_admin && (
           <Link
             href="/admin/handicap-settings"
-            className="text-sm font-medium text-accent-dark underline underline-offset-2"
+            className="-mr-2 flex min-h-[44px] items-center px-2 text-sm font-medium text-accent-dark underline underline-offset-2"
           >
             Handicap settings
           </Link>

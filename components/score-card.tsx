@@ -83,6 +83,14 @@ export default function ScoreCard({
     save(hole.hole_number, next);
   }
 
+  if (holes.length === 0) {
+    return (
+      <p className="rounded-xl border border-dashed border-fairway-200 bg-cream-100 p-6 text-center text-sm text-fairway-500">
+        This course&rsquo;s holes aren&rsquo;t set up yet. Ask an admin to check the course data.
+      </p>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-4">
       <div className="sticky top-16 z-30 flex items-center justify-between rounded-xl border border-fairway-200 bg-white/95 px-4 py-3 shadow-sm backdrop-blur md:top-4">
