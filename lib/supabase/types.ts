@@ -68,79 +68,172 @@ export type Database = {
         }
         Relationships: []
       }
-      players: {
+      match_players: {
         Row: {
-          approved: boolean
-          auth_user_id: string | null
-          created_at: string
-          email: string
+          handicap: number
           id: string
-          is_admin: boolean
-          name: string
+          is_substitute: boolean
+          match_id: string
+          player_id: string
+          role: string
+          team_id: string
         }
         Insert: {
-          approved?: boolean
-          auth_user_id?: string | null
-          created_at?: string
-          email: string
+          handicap: number
           id?: string
-          is_admin?: boolean
-          name: string
+          is_substitute?: boolean
+          match_id: string
+          player_id: string
+          role: string
+          team_id: string
         }
         Update: {
-          approved?: boolean
-          auth_user_id?: string | null
-          created_at?: string
-          email?: string
+          handicap?: number
           id?: string
-          is_admin?: boolean
-          name?: string
-        }
-        Relationships: []
-      }
-      round_players: {
-        Row: {
-          player_id: string
-          round_id: string
-          tee_time_group: number | null
-        }
-        Insert: {
-          player_id: string
-          round_id: string
-          tee_time_group?: number | null
-        }
-        Update: {
+          is_substitute?: boolean
+          match_id?: string
           player_id?: string
-          round_id?: string
-          tee_time_group?: number | null
+          role?: string
+          team_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "round_players_player_id_fkey"
+            foreignKeyName: "match_players_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "match_hole_points"
+            referencedColumns: ["match_id"]
+          },
+          {
+            foreignKeyName: "match_players_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "match_team_totals"
+            referencedColumns: ["match_id"]
+          },
+          {
+            foreignKeyName: "match_players_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "match_players_player_id_fkey"
             columns: ["player_id"]
             isOneToOne: false
             referencedRelation: "player_handicaps"
             referencedColumns: ["player_id"]
           },
           {
-            foreignKeyName: "round_players_player_id_fkey"
+            foreignKeyName: "match_players_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "player_stats"
+            referencedColumns: ["player_id"]
+          },
+          {
+            foreignKeyName: "match_players_player_id_fkey"
             columns: ["player_id"]
             isOneToOne: false
             referencedRelation: "players"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "round_players_player_id_fkey"
-            columns: ["player_id"]
+            foreignKeyName: "match_players_team_id_fkey"
+            columns: ["team_id"]
             isOneToOne: false
-            referencedRelation: "standings"
-            referencedColumns: ["player_id"]
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
           },
+        ]
+      }
+      matches: {
+        Row: {
+          created_at: string
+          id: string
+          round_id: string
+          team_a_id: string
+          team_b_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          round_id: string
+          team_a_id: string
+          team_b_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          round_id?: string
+          team_a_id?: string
+          team_b_id?: string
+        }
+        Relationships: [
           {
-            foreignKeyName: "round_players_round_id_fkey"
+            foreignKeyName: "matches_round_id_fkey"
             columns: ["round_id"]
             isOneToOne: false
             referencedRelation: "rounds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matches_team_a_id_fkey"
+            columns: ["team_a_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matches_team_b_id_fkey"
+            columns: ["team_b_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      players: {
+        Row: {
+          approved: boolean
+          auth_user_id: string | null
+          created_at: string
+          email: string | null
+          id: string
+          is_admin: boolean
+          is_guest: boolean
+          name: string
+          team_id: string | null
+        }
+        Insert: {
+          approved?: boolean
+          auth_user_id?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_admin?: boolean
+          is_guest?: boolean
+          name: string
+          team_id?: string | null
+        }
+        Update: {
+          approved?: boolean
+          auth_user_id?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_admin?: boolean
+          is_guest?: boolean
+          name?: string
+          team_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "players_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
             referencedColumns: ["id"]
           },
         ]
@@ -209,15 +302,15 @@ export type Database = {
             foreignKeyName: "scores_player_id_fkey"
             columns: ["player_id"]
             isOneToOne: false
-            referencedRelation: "players"
-            referencedColumns: ["id"]
+            referencedRelation: "player_stats"
+            referencedColumns: ["player_id"]
           },
           {
             foreignKeyName: "scores_player_id_fkey"
             columns: ["player_id"]
             isOneToOne: false
-            referencedRelation: "standings"
-            referencedColumns: ["player_id"]
+            referencedRelation: "players"
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "scores_round_id_fkey"
@@ -228,8 +321,129 @@ export type Database = {
           },
         ]
       }
+      teams: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
+      match_hole_points: {
+        Row: {
+          hole_number: number | null
+          match_id: string | null
+          par: number | null
+          role: string | null
+          stroke_index: number | null
+          team_a_gross: number | null
+          team_a_hole_points: number | null
+          team_a_net: number | null
+          team_a_player_id: string | null
+          team_a_strokes_received: number | null
+          team_b_gross: number | null
+          team_b_hole_points: number | null
+          team_b_net: number | null
+          team_b_player_id: string | null
+          team_b_strokes_received: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_players_player_id_fkey"
+            columns: ["team_b_player_id"]
+            isOneToOne: false
+            referencedRelation: "player_handicaps"
+            referencedColumns: ["player_id"]
+          },
+          {
+            foreignKeyName: "match_players_player_id_fkey"
+            columns: ["team_a_player_id"]
+            isOneToOne: false
+            referencedRelation: "player_handicaps"
+            referencedColumns: ["player_id"]
+          },
+          {
+            foreignKeyName: "match_players_player_id_fkey"
+            columns: ["team_b_player_id"]
+            isOneToOne: false
+            referencedRelation: "player_stats"
+            referencedColumns: ["player_id"]
+          },
+          {
+            foreignKeyName: "match_players_player_id_fkey"
+            columns: ["team_a_player_id"]
+            isOneToOne: false
+            referencedRelation: "player_stats"
+            referencedColumns: ["player_id"]
+          },
+          {
+            foreignKeyName: "match_players_player_id_fkey"
+            columns: ["team_b_player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "match_players_player_id_fkey"
+            columns: ["team_a_player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      match_team_totals: {
+        Row: {
+          holes_decided: number | null
+          match_id: string | null
+          round_id: string | null
+          team_a_hole_points: number | null
+          team_a_id: string | null
+          team_a_name: string | null
+          team_a_net_points: number | null
+          team_a_total_points: number | null
+          team_b_hole_points: number | null
+          team_b_id: string | null
+          team_b_name: string | null
+          team_b_net_points: number | null
+          team_b_total_points: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "matches_round_id_fkey"
+            columns: ["round_id"]
+            isOneToOne: false
+            referencedRelation: "rounds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matches_team_a_id_fkey"
+            columns: ["team_a_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matches_team_b_id_fkey"
+            columns: ["team_b_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       player_handicaps: {
         Row: {
           handicap: number | null
@@ -240,12 +454,17 @@ export type Database = {
         }
         Relationships: []
       }
-      standings: {
+      player_stats: {
         Row: {
+          handicap: number | null
+          match_halves: number | null
+          match_losses: number | null
+          match_wins: number | null
           name: string | null
           player_id: string | null
-          points: number | null
           rounds_played: number | null
+          scoring_average: number | null
+          total_hole_points: number | null
         }
         Relationships: []
       }
@@ -254,7 +473,10 @@ export type Database = {
       approve_player: { Args: { target_player_id: string }; Returns: undefined }
       current_player_id: { Args: never; Returns: string }
       is_admin: { Args: never; Returns: boolean }
-      points_for_position: { Args: { pos: number }; Returns: number }
+      set_player_team: {
+        Args: { new_team_id: string; target_player_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       round_status: "upcoming" | "live" | "completed"

@@ -6,8 +6,10 @@ import ScoreCard from "@/components/score-card";
 
 export default async function ScorePage({
   params,
+  searchParams,
 }: {
   params: { roundId: string };
+  searchParams: { as?: string };
 }) {
   const { player } = await requireApprovedPlayer(`/schedule/${params.roundId}/score`);
 
@@ -40,23 +42,46 @@ export default async function ScorePage({
     );
   }
 
-  const { data: membership } = await supabase
-    .from("round_players")
-    .select("player_id")
-    .eq("round_id", round.id)
-    .eq("player_id", player.id)
-    .maybeSingle();
+  // Normally you're entering your own strokes; an admin can proxy-enter for
+  // someone else (mainly guests, who have no login of their own) via ?as=.
+  const targetPlayerId = searchParams.as && player.is_admin ? searchParams.as : player.id;
+  const isProxy = targetPlayerId !== player.id;
 
-  if (!membership) {
+  const { data: matchesForRound } = await supabase.from("matches").select("id").eq("round_id", round.id);
+  const matchIds = (matchesForRound ?? []).map((m) => m.id);
+
+  const { data: myMatchPlayer } = matchIds.length
+    ? await supabase
+        .from("match_players")
+        .select("match_id, team_id, role, player_id, players(name)")
+        .in("match_id", matchIds)
+        .eq("player_id", targetPlayerId)
+        .maybeSingle()
+    : { data: null };
+
+  if (!myMatchPlayer) {
     return (
       <div className="flex flex-col gap-4 py-6">
         {backLink}
         <p className="rounded-xl border border-dashed border-fairway-200 bg-cream-100 p-6 text-center text-sm text-fairway-500">
-          You haven&rsquo;t been added to this round. Ask an admin to add you to a tee time group.
+          {isProxy
+            ? "That player isn't in a match for this round."
+            : "You haven't been added to a match for this round. Ask an admin."}
         </p>
       </div>
     );
   }
+
+  const { data: opponent } = await supabase
+    .from("match_players")
+    .select("player_id, players(name)")
+    .eq("match_id", myMatchPlayer.match_id)
+    .eq("role", myMatchPlayer.role)
+    .neq("team_id", myMatchPlayer.team_id)
+    .maybeSingle();
+
+  const opponentName = (opponent?.players as unknown as { name: string } | null)?.name;
+  const targetName = (myMatchPlayer.players as unknown as { name: string } | null)?.name;
 
   const [{ data: holes }, { data: existingScores }] = await Promise.all([
     supabase
@@ -68,7 +93,7 @@ export default async function ScorePage({
       .from("scores")
       .select("hole_number, strokes")
       .eq("round_id", round.id)
-      .eq("player_id", player.id),
+      .eq("player_id", targetPlayerId),
   ]);
 
   const initialStrokes: Record<number, number | null> = {};
@@ -80,12 +105,17 @@ export default async function ScorePage({
     <div className="flex flex-col gap-4 py-6">
       {backLink}
       <div>
-        <h1 className="text-2xl font-bold text-fairway-800">Your scorecard</h1>
-        <p className="text-sm text-fairway-500">{round.course_name}</p>
+        <h1 className="text-2xl font-bold text-fairway-800">
+          {isProxy ? `${targetName}'s scorecard` : "Your scorecard"}
+        </h1>
+        <p className="text-sm text-fairway-500">
+          {round.course_name} · Match {myMatchPlayer.role}
+          {opponentName ? ` vs ${opponentName}` : ""}
+        </p>
       </div>
       <ScoreCard
         roundId={round.id}
-        playerId={player.id}
+        playerId={targetPlayerId}
         holes={holes ?? []}
         initialStrokes={initialStrokes}
       />

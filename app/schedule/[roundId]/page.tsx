@@ -4,7 +4,16 @@ import { requireApprovedPlayer } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { formatRoundDate, formatTeeTime } from "@/lib/format";
 
-type GroupedPlayer = { id: string; name: string };
+type Participant = { player_id: string; role: string; name: string; is_substitute: boolean };
+type MatchView = {
+  id: string;
+  team_a_id: string;
+  team_b_id: string;
+  team_a_name: string;
+  team_b_name: string;
+  teamA: Participant[];
+  teamB: Participant[];
+};
 
 export default async function RoundDetailPage({
   params,
@@ -25,24 +34,57 @@ export default async function RoundDetailPage({
     notFound();
   }
 
-  const { data: groupRows } = await supabase
-    .from("round_players")
-    .select("tee_time_group, players(id, name)")
-    .eq("round_id", params.roundId)
-    .order("tee_time_group", { ascending: true })
-    .order("name", { ascending: true, foreignTable: "players" });
+  const { data: matchRows } = await supabase
+    .from("matches")
+    .select(
+      "id, team_a_id, team_b_id, team_a:teams!matches_team_a_id_fkey(name), team_b:teams!matches_team_b_id_fkey(name)",
+    )
+    .eq("round_id", round.id);
 
-  const groups = new Map<string, GroupedPlayer[]>();
+  const matchIds = (matchRows ?? []).map((m) => m.id);
+
+  const { data: participantRows } = matchIds.length
+    ? await supabase
+        .from("match_players")
+        .select("match_id, team_id, role, player_id, is_substitute, players(name)")
+        .in("match_id", matchIds)
+        .order("role", { ascending: true })
+    : { data: [] };
+
   let isPlayerInRound = false;
-  for (const row of groupRows ?? []) {
-    const key = row.tee_time_group !== null ? String(row.tee_time_group) : "Unassigned";
-    const rowPlayer = row.players as unknown as GroupedPlayer | null;
-    if (!rowPlayer) continue;
-    if (rowPlayer.id === player.id) isPlayerInRound = true;
-    const list = groups.get(key) ?? [];
-    list.push(rowPlayer);
-    groups.set(key, list);
-  }
+  const matches: MatchView[] = (matchRows ?? []).map((m) => {
+    const teamA = (participantRows ?? [])
+      .filter((r) => r.match_id === m.id && r.team_id === m.team_a_id)
+      .map((r) => {
+        if (r.player_id === player.id) isPlayerInRound = true;
+        return {
+          player_id: r.player_id,
+          role: r.role,
+          is_substitute: r.is_substitute,
+          name: (r.players as unknown as { name: string } | null)?.name ?? "—",
+        };
+      });
+    const teamB = (participantRows ?? [])
+      .filter((r) => r.match_id === m.id && r.team_id === m.team_b_id)
+      .map((r) => {
+        if (r.player_id === player.id) isPlayerInRound = true;
+        return {
+          player_id: r.player_id,
+          role: r.role,
+          is_substitute: r.is_substitute,
+          name: (r.players as unknown as { name: string } | null)?.name ?? "—",
+        };
+      });
+    return {
+      id: m.id,
+      team_a_id: m.team_a_id,
+      team_b_id: m.team_b_id,
+      team_a_name: (m.team_a as unknown as { name: string } | null)?.name ?? "Team A",
+      team_b_name: (m.team_b as unknown as { name: string } | null)?.name ?? "Team B",
+      teamA,
+      teamB,
+    };
+  });
 
   const teeTime = formatTeeTime(round.tee_time);
 
@@ -59,33 +101,60 @@ export default async function RoundDetailPage({
         </p>
       </div>
 
-      {round.status === "live" && isPlayerInRound && (
-        <Link
-          href={`/schedule/${round.id}/score`}
-          className="rounded-lg bg-fairway-700 px-4 py-3 text-center text-base font-semibold text-cream-50 active:bg-fairway-800"
-        >
-          Enter your score
-        </Link>
-      )}
+      <div className="flex flex-col gap-2 sm:flex-row">
+        {round.status === "live" && isPlayerInRound && (
+          <Link
+            href={`/schedule/${round.id}/score`}
+            className="flex-1 rounded-lg bg-fairway-700 px-4 py-3 text-center text-base font-semibold text-cream-50 active:bg-fairway-800"
+          >
+            Enter your score
+          </Link>
+        )}
+        {player.is_admin && (
+          <Link
+            href={`/admin/rounds/${round.id}/matches/new`}
+            className="flex-1 rounded-lg border border-fairway-200 px-4 py-3 text-center text-sm font-medium text-fairway-700"
+          >
+            + Add match
+          </Link>
+        )}
+      </div>
 
-      {groups.size === 0 ? (
+      {matches.length === 0 ? (
         <p className="rounded-xl border border-dashed border-fairway-200 bg-cream-100 p-6 text-center text-sm text-fairway-500">
-          Tee time groups haven&rsquo;t been set yet.
+          No matches set up for this round yet.
         </p>
       ) : (
         <div className="flex flex-col gap-4">
-          {Array.from(groups.entries()).map(([group, players]) => (
-            <div key={group} className="rounded-xl border border-fairway-200 bg-white p-4">
-              <p className="mb-2 text-sm font-semibold uppercase tracking-wide text-fairway-500">
-                {group === "Unassigned" ? "Unassigned" : `Group ${group}`}
-              </p>
-              <ul className="flex flex-col gap-1.5">
-                {players.map((p) => (
-                  <li key={p.id} className="text-base text-fairway-800">
-                    {p.name}
-                  </li>
-                ))}
-              </ul>
+          {matches.map((m) => (
+            <div key={m.id} className="rounded-xl border border-fairway-200 bg-white p-4">
+              <div className="flex flex-col gap-3">
+                <div>
+                  <p className="text-sm font-semibold text-fairway-800">{m.team_a_name}</p>
+                  <ul className="mt-1 flex flex-col gap-0.5">
+                    {m.teamA.map((p) => (
+                      <li key={p.player_id} className="text-sm text-fairway-600">
+                        {p.role}: {p.name}
+                        {p.is_substitute ? " (sub)" : ""}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="text-center text-xs font-semibold uppercase tracking-wide text-fairway-400">
+                  vs
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-fairway-800">{m.team_b_name}</p>
+                  <ul className="mt-1 flex flex-col gap-0.5">
+                    {m.teamB.map((p) => (
+                      <li key={p.player_id} className="text-sm text-fairway-600">
+                        {p.role}: {p.name}
+                        {p.is_substitute ? " (sub)" : ""}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
             </div>
           ))}
         </div>

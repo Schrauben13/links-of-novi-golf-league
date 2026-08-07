@@ -1,17 +1,6 @@
 import { requireApprovedPlayer } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
-const POINTS_SCALE = [
-  { place: "1st", points: 10 },
-  { place: "2nd", points: 8 },
-  { place: "3rd", points: 6 },
-  { place: "4th", points: 5 },
-  { place: "5th", points: 4 },
-  { place: "6th", points: 3 },
-  { place: "7th", points: 2 },
-  { place: "8th+", points: 1 },
-];
-
 export default async function RulesPage() {
   await requireApprovedPlayer("/rules");
 
@@ -26,11 +15,24 @@ export default async function RulesPage() {
       <h1 className="text-2xl font-bold text-fairway-800">Rules &amp; Scoring</h1>
 
       <section className="flex flex-col gap-3">
+        <h2 className="text-lg font-semibold text-fairway-800">Teams &amp; matches</h2>
+        <p className="text-sm text-fairway-600">
+          Players are grouped into fixed 2-man teams for the season. Each week, two teams are
+          paired into a match. Within a match, the lower-handicap player on each team is{" "}
+          <span className="font-medium text-fairway-800">Player A</span>; the other is{" "}
+          <span className="font-medium text-fairway-800">Player B</span>. A-vs-A and B-vs-B are
+          two separate 9-hole individual matches, played at the same time as part of the same
+          round.
+        </p>
+      </section>
+
+      <section className="flex flex-col gap-3">
         <h2 className="text-lg font-semibold text-fairway-800">How a round works</h2>
         <ol className="flex flex-col gap-2 text-sm text-fairway-600">
           <li>
-            <span className="font-semibold text-fairway-800">1. Schedule.</span> Upcoming
-            rounds show the date, tee time, and course. Tap a round to see tee time groups.
+            <span className="font-semibold text-fairway-800">1. Schedule.</span> Upcoming rounds
+            show the date, tee time, and course. Tap a round to see the matches and who&rsquo;s
+            playing whom.
           </li>
           <li>
             <span className="font-semibold text-fairway-800">2. Live scoring.</span> Once an
@@ -38,48 +40,49 @@ export default async function RulesPage() {
             hole from the round page. Scores save automatically as you go.
           </li>
           <li>
-            <span className="font-semibold text-fairway-800">3. Leaderboard.</span> While a
-            round is live, everyone&rsquo;s scores update on the leaderboard in real time,
-            sorted by total score relative to par.
+            <span className="font-semibold text-fairway-800">3. Leaderboard.</span> While a round
+            is live, every match&rsquo;s points update in real time as scores come in.
           </li>
           <li>
-            <span className="font-semibold text-fairway-800">4. Standings.</span> Once a round
-            is marked &ldquo;completed,&rdquo; it counts toward season standings and your
+            <span className="font-semibold text-fairway-800">4. Individual stats.</span> Once a
+            round is marked &ldquo;completed,&rdquo; it counts toward your personal record and
             handicap (see below).
           </li>
         </ol>
       </section>
 
       <section className="flex flex-col gap-3">
-        <h2 className="text-lg font-semibold text-fairway-800">Season standings</h2>
+        <h2 className="text-lg font-semibold text-fairway-800">Scoring a match (22 points)</h2>
         <p className="text-sm text-fairway-600">
-          For every completed round where you post a full 9-hole score, you&rsquo;re ranked
-          against the field by total gross strokes and awarded points by finish:
+          Each of the 9 holes is worth <span className="font-medium text-fairway-800">2 points</span>,
+          contested between the two individual matches on that hole: A-vs-A is worth 1 point,
+          B-vs-B is worth 1 point. Whoever has the lower <em>net</em> score on a hole wins that
+          point for their team; a tie halves it (0.5 each).
         </p>
-        <div className="overflow-x-auto rounded-xl border border-fairway-200 bg-white">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-fairway-200 bg-cream-100 text-left text-xs font-semibold uppercase tracking-wide text-fairway-500">
-                <th className="px-3 py-2">Finish</th>
-                <th className="px-3 py-2 text-right">Points</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-fairway-100">
-              {POINTS_SCALE.map((row) => (
-                <tr key={row.place}>
-                  <td className="px-3 py-2 font-medium text-fairway-800">{row.place}</td>
-                  <td className="px-3 py-2 text-right text-fairway-700">{row.points}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
         <p className="text-sm text-fairway-600">
-          If two or more players tie, they split the points for the positions they cover. For
-          example, a tie for 2nd and 3rd means both players get{" "}
-          <span className="font-medium text-fairway-800">(8 + 6) / 2 = 7</span> points each, and
-          the next player takes 4th. Your season points are the sum across every completed
-          round. This uses gross scores for now &mdash; not adjusted by handicap.
+          There&rsquo;s also a <span className="font-medium text-fairway-800">4-point team net
+          score</span>: each team&rsquo;s combined net total (their A player&rsquo;s net + their B
+          player&rsquo;s net) is compared to the other team&rsquo;s. Lower total takes all 4
+          points; a tie splits it 2-2.
+        </p>
+        <p className="text-sm text-fairway-600">
+          9 holes × 2 points + 4 team points = <span className="font-medium text-fairway-800">22
+          points</span> per match.
+        </p>
+      </section>
+
+      <section className="flex flex-col gap-3">
+        <h2 className="text-lg font-semibold text-fairway-800">Net scoring &amp; strokes</h2>
+        <p className="text-sm text-fairway-600">
+          Strokes are given based on the <em>difference</em> between the two players in each
+          individual match &mdash; not each player&rsquo;s full handicap. If Team 1&rsquo;s
+          Player A has a handicap of 9 and Team 2&rsquo;s Player A has a handicap of 7, Team
+          1&rsquo;s Player A gets 2 strokes, applied to the 2 hardest holes on the course (lowest
+          stroke index). The same comparison happens separately for the B pairing.
+        </p>
+        <p className="text-sm text-fairway-600">
+          Handicaps used in a match are locked in when the match is set up, so results
+          don&rsquo;t change later as more rounds get played and averages shift.
         </p>
       </section>
 
@@ -110,9 +113,10 @@ export default async function RulesPage() {
           <span className="font-medium text-fairway-800">
             {settings?.minimum_rounds ?? "a few"}
           </span>{" "}
-          completed rounds on record before a handicap shows on your profile. These settings
-          are occasionally tuned by league admins, so the exact numbers here always reflect
-          what&rsquo;s currently in effect.
+          completed rounds on record before a handicap shows on your profile. Substitutes and
+          guests without an established handicap get one entered by an admin for that match
+          only. These settings are occasionally tuned by league admins, so the exact numbers
+          here always reflect what&rsquo;s currently in effect.
         </p>
       </section>
     </div>

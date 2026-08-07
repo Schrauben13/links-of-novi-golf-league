@@ -24,31 +24,20 @@ export default async function LeaderboardPage() {
         <p className="rounded-xl border border-dashed border-fairway-200 bg-cream-100 p-6 text-center text-sm text-fairway-500">
           No round is live right now.
         </p>
-        <Link href="/schedule" className="text-center text-sm font-medium text-accent-dark underline underline-offset-2">
+        <Link
+          href="/schedule"
+          className="text-center text-sm font-medium text-accent-dark underline underline-offset-2"
+        >
           View schedule
         </Link>
       </div>
     );
   }
 
-  const [{ data: roster }, { data: holes }, { data: scores }] = await Promise.all([
-    supabase
-      .from("round_players")
-      .select("player_id, players(id, name)")
-      .eq("round_id", liveRound.id),
-    supabase
-      .from("course_holes")
-      .select("hole_number, par")
-      .eq("course_name", liveRound.course_name),
-    supabase
-      .from("scores")
-      .select("player_id, hole_number, strokes")
-      .eq("round_id", liveRound.id),
-  ]);
-
-  const players = (roster ?? [])
-    .map((row) => row.players as unknown as { id: string; name: string } | null)
-    .filter((p): p is { id: string; name: string } => p !== null);
+  const { data: matches } = await supabase
+    .from("match_team_totals")
+    .select("*")
+    .eq("round_id", liveRound.id);
 
   const teeTime = formatTeeTime(liveRound.tee_time);
 
@@ -62,12 +51,7 @@ export default async function LeaderboardPage() {
         </p>
       </div>
 
-      <LiveLeaderboard
-        roundId={liveRound.id}
-        players={players}
-        holes={holes ?? []}
-        initialScores={scores ?? []}
-      />
+      <LiveLeaderboard roundId={liveRound.id} initialMatches={matches ?? []} />
     </div>
   );
 }
