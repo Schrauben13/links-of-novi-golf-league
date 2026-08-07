@@ -38,7 +38,7 @@ export default async function HandicapSettingsPage({
             name="lookback_rounds"
             type="number"
             min={1}
-            defaultValue={settings?.lookback_rounds ?? 20}
+            defaultValue={settings?.lookback_rounds ?? 6}
             required
             className="rounded-lg border border-fairway-200 bg-white px-4 py-3 text-base text-fairway-800 outline-none focus:border-fairway-500 focus:ring-2 focus:ring-fairway-200"
           />
@@ -53,7 +53,7 @@ export default async function HandicapSettingsPage({
             name="minimum_rounds"
             type="number"
             min={1}
-            defaultValue={settings?.minimum_rounds ?? 15}
+            defaultValue={settings?.minimum_rounds ?? 6}
             required
             className="rounded-lg border border-fairway-200 bg-white px-4 py-3 text-base text-fairway-800 outline-none focus:border-fairway-500 focus:ring-2 focus:ring-fairway-200"
           />
@@ -68,7 +68,7 @@ export default async function HandicapSettingsPage({
             name="best_count"
             type="number"
             min={1}
-            defaultValue={settings?.best_count ?? 8}
+            defaultValue={settings?.best_count ?? 4}
             required
             className="rounded-lg border border-fairway-200 bg-white px-4 py-3 text-base text-fairway-800 outline-none focus:border-fairway-500 focus:ring-2 focus:ring-fairway-200"
           />
