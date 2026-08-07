@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { requireApprovedPlayer } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
@@ -51,7 +52,10 @@ export default async function StandingsPage() {
 
       <p className="text-center text-xs text-fairway-400">
         Points per round by finish: 1st 10 · 2nd 8 · 3rd 6 · 4th 5 · 5th 4 · 6th 3 · 7th 2 · 8th+
-        1 (ties split). Gross scoring for now.
+        1 (ties split). Gross scoring for now.{" "}
+        <Link href="/rules" className="underline underline-offset-2">
+          Full rules
+        </Link>
       </p>
     </div>
   );

@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function HomePage() {
   return (
     <div className="flex flex-col items-center gap-6 py-10 text-center">
@@ -16,6 +18,12 @@ export default function HomePage() {
         Welcome to the league hub. Check the schedule, track the leaderboard,
         browse the roster, and follow season standings.
       </p>
+      <Link
+        href="/rules"
+        className="text-sm font-medium text-accent-dark underline underline-offset-2"
+      >
+        Rules &amp; scoring
+      </Link>
     </div>
   );
 }

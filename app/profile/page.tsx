@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { requireApprovedPlayer } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { signOut } from "@/app/actions";
@@ -35,7 +36,10 @@ export default async function ProfilePage() {
           <p className="mt-1 text-xs text-fairway-400">
             {handicap && handicap.minimum_rounds !== null && handicap.handicap === null
               ? `Calculated by the league once you've posted ${handicap.minimum_rounds} completed rounds (${handicap.rounds_in_window ?? 0} so far).`
-              : "Calculated by the league from your best recent rounds."}
+              : "Calculated by the league from your best recent rounds."}{" "}
+            <Link href="/rules" className="underline underline-offset-2">
+              How it&rsquo;s calculated
+            </Link>
           </p>
         </div>
       </div>
