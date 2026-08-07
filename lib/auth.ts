@@ -25,3 +25,13 @@ export async function requireApprovedPlayer(nextPath: string) {
 
   return { user, player: player as Tables<"players"> };
 }
+
+export async function requireAdmin(nextPath: string) {
+  const { user, player } = await requireApprovedPlayer(nextPath);
+
+  if (!player.is_admin) {
+    redirect("/roster");
+  }
+
+  return { user, player };
+}
