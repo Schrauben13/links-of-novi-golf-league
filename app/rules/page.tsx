@@ -44,9 +44,9 @@ export default async function RulesPage() {
             is live, every match&rsquo;s points update in real time as scores come in.
           </li>
           <li>
-            <span className="font-semibold text-fairway-800">4. Individual stats.</span> Once a
-            round is marked &ldquo;completed,&rdquo; it counts toward your personal record and
-            handicap (see below).
+            <span className="font-semibold text-fairway-800">4. Standings.</span> Once a round is
+            marked &ldquo;completed,&rdquo; the match points count toward both teams&rsquo; season
+            standings, and toward your personal record and handicap (see below).
           </li>
         </ol>
       </section>
@@ -68,6 +68,20 @@ export default async function RulesPage() {
         <p className="text-sm text-fairway-600">
           9 holes × 2 points + 4 team points = <span className="font-medium text-fairway-800">22
           points</span> per match.
+        </p>
+      </section>
+
+      <section className="flex flex-col gap-3">
+        <h2 className="text-lg font-semibold text-fairway-800">Standings</h2>
+        <p className="text-sm text-fairway-600">
+          The Standings tab is your <span className="font-medium text-fairway-800">team&rsquo;s</span>{" "}
+          cumulative score for the season &mdash; every completed match&rsquo;s points, added up,
+          for both teams involved. Ranked by total points, with your team&rsquo;s match
+          win-loss-tie record alongside it.
+        </p>
+        <p className="text-sm text-fairway-600">
+          Looking for individual numbers instead &mdash; handicap, personal scoring average, your
+          own A/B pairing record? That&rsquo;s under Roster &rarr; Individual stats.
         </p>
       </section>
 

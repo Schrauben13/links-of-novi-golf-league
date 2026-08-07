@@ -29,6 +29,12 @@ export default async function RosterPage() {
           </Link>
         )}
       </div>
+      <Link
+        href="/roster/stats"
+        className="-mt-2 -mb-2 self-start text-sm font-medium text-accent-dark underline underline-offset-2"
+      >
+        Individual stats →
+      </Link>
       <RosterList players={players ?? []} />
     </div>
   );

@@ -143,6 +143,13 @@ export type Database = {
             foreignKeyName: "match_players_team_id_fkey"
             columns: ["team_id"]
             isOneToOne: false
+            referencedRelation: "team_standings"
+            referencedColumns: ["team_id"]
+          },
+          {
+            foreignKeyName: "match_players_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
             referencedRelation: "teams"
             referencedColumns: ["id"]
           },
@@ -182,8 +189,22 @@ export type Database = {
             foreignKeyName: "matches_team_a_id_fkey"
             columns: ["team_a_id"]
             isOneToOne: false
+            referencedRelation: "team_standings"
+            referencedColumns: ["team_id"]
+          },
+          {
+            foreignKeyName: "matches_team_a_id_fkey"
+            columns: ["team_a_id"]
+            isOneToOne: false
             referencedRelation: "teams"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matches_team_b_id_fkey"
+            columns: ["team_b_id"]
+            isOneToOne: false
+            referencedRelation: "team_standings"
+            referencedColumns: ["team_id"]
           },
           {
             foreignKeyName: "matches_team_b_id_fkey"
@@ -229,6 +250,13 @@ export type Database = {
           team_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "players_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "team_standings"
+            referencedColumns: ["team_id"]
+          },
           {
             foreignKeyName: "players_team_id_fkey"
             columns: ["team_id"]
@@ -432,8 +460,22 @@ export type Database = {
             foreignKeyName: "matches_team_a_id_fkey"
             columns: ["team_a_id"]
             isOneToOne: false
+            referencedRelation: "team_standings"
+            referencedColumns: ["team_id"]
+          },
+          {
+            foreignKeyName: "matches_team_a_id_fkey"
+            columns: ["team_a_id"]
+            isOneToOne: false
             referencedRelation: "teams"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matches_team_b_id_fkey"
+            columns: ["team_b_id"]
+            isOneToOne: false
+            referencedRelation: "team_standings"
+            referencedColumns: ["team_id"]
           },
           {
             foreignKeyName: "matches_team_b_id_fkey"
@@ -465,6 +507,18 @@ export type Database = {
           rounds_played: number | null
           scoring_average: number | null
           total_hole_points: number | null
+        }
+        Relationships: []
+      }
+      team_standings: {
+        Row: {
+          losses: number | null
+          matches_played: number | null
+          name: string | null
+          points: number | null
+          team_id: string | null
+          ties: number | null
+          wins: number | null
         }
         Relationships: []
       }

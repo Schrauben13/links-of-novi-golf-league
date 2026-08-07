@@ -1,53 +1,59 @@
 import Link from "next/link";
 import { requireApprovedPlayer } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import BackLink from "@/components/back-link";
 
-export default async function StandingsPage() {
-  await requireApprovedPlayer("/standings");
+export default async function IndividualStatsPage() {
+  await requireApprovedPlayer("/roster/stats");
 
   const supabase = await createClient();
   const { data, error } = await supabase
-    .from("team_standings")
-    .select("team_id, name, matches_played, points, wins, losses, ties")
-    .order("points", { ascending: false })
-    .order("wins", { ascending: false })
+    .from("player_stats")
+    .select("player_id, name, handicap, rounds_played, scoring_average, match_wins, match_losses, match_halves, total_hole_points")
+    .order("match_wins", { ascending: false })
+    .order("total_hole_points", { ascending: false })
     .order("name", { ascending: true });
 
   if (error) {
-    throw new Error(`Couldn't load standings: ${error.message}`);
+    throw new Error(`Couldn't load stats: ${error.message}`);
   }
 
   const rows = data ?? [];
 
   return (
     <div className="flex flex-col gap-4 py-6">
-      <h1 className="text-2xl font-bold text-fairway-800">Standings</h1>
+      <div>
+        <BackLink href="/roster">← Roster</BackLink>
+        <h1 className="mt-1 text-2xl font-bold text-fairway-800">Individual Stats</h1>
+      </div>
 
       {rows.length === 0 ? (
         <p className="rounded-xl border border-dashed border-fairway-200 bg-cream-100 p-6 text-center text-sm text-fairway-500">
-          No teams yet.
+          No approved players yet.
         </p>
       ) : (
         <div className="overflow-x-auto rounded-xl border border-fairway-200 bg-white">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-fairway-200 bg-cream-100 text-left text-xs font-semibold uppercase tracking-wide text-fairway-500">
-                <th className="px-3 py-2">#</th>
-                <th className="px-3 py-2">Team</th>
+                <th className="px-3 py-2">Player</th>
+                <th className="px-3 py-2 text-right">Hcp</th>
                 <th className="px-3 py-2 text-right">Record</th>
-                <th className="px-3 py-2 text-right">Points</th>
+                <th className="px-3 py-2 text-right">Avg</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-fairway-100">
-              {rows.map((row, i) => (
-                <tr key={row.team_id} className={i === 0 ? "bg-accent/10" : ""}>
-                  <td className="px-3 py-3 font-semibold text-fairway-500">{i + 1}</td>
+              {rows.map((row) => (
+                <tr key={row.player_id}>
                   <td className="px-3 py-3 font-medium text-fairway-800">{row.name}</td>
                   <td className="px-3 py-3 text-right text-fairway-500">
-                    {row.wins}-{row.losses}-{row.ties}
+                    {row.handicap ?? "—"}
                   </td>
-                  <td className="px-3 py-3 text-right text-base font-bold text-fairway-800">
-                    {row.points}
+                  <td className="px-3 py-3 text-right font-semibold text-fairway-800">
+                    {row.match_wins}-{row.match_losses}-{row.match_halves}
+                  </td>
+                  <td className="px-3 py-3 text-right text-fairway-500">
+                    {row.scoring_average ?? "—"}
                   </td>
                 </tr>
               ))}
@@ -57,8 +63,8 @@ export default async function StandingsPage() {
       )}
 
       <p className="text-center text-xs text-fairway-400">
-        Points are a team&rsquo;s cumulative match points (hole points + net points) across every
-        completed round this season.{" "}
+        Record is win-loss-halve in your individual A/B pairing (separate from your team&rsquo;s
+        overall match result).{" "}
         <Link href="/rules" className="underline underline-offset-2">
           Full rules
         </Link>
