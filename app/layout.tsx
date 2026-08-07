@@ -3,6 +3,8 @@ import localFont from "next/font/local";
 import "./globals.css";
 import TopNav from "@/components/top-nav";
 import BottomNav from "@/components/bottom-nav";
+import MobileTopBar from "@/components/mobile-top-bar";
+import AccountLink from "@/components/account-link";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -35,7 +37,8 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <TopNav />
+        <TopNav accountSlot={<AccountLink />} />
+        <MobileTopBar />
         <main className="mx-auto min-h-[calc(100dvh-4rem)] max-w-5xl px-4 pb-20 pt-6 md:pb-10">
           {children}
         </main>
