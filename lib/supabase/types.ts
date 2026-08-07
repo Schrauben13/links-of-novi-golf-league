@@ -32,13 +32,39 @@ export type Database = {
         }
         Relationships: []
       }
+      handicap_settings: {
+        Row: {
+          best_count: number
+          id: boolean
+          lookback_rounds: number
+          minimum_rounds: number
+          percentage_factor: number
+          updated_at: string
+        }
+        Insert: {
+          best_count?: number
+          id?: boolean
+          lookback_rounds?: number
+          minimum_rounds?: number
+          percentage_factor?: number
+          updated_at?: string
+        }
+        Update: {
+          best_count?: number
+          id?: boolean
+          lookback_rounds?: number
+          minimum_rounds?: number
+          percentage_factor?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       players: {
         Row: {
           approved: boolean
           auth_user_id: string | null
           created_at: string
           email: string
-          handicap: number | null
           id: string
           is_admin: boolean
           name: string
@@ -48,7 +74,6 @@ export type Database = {
           auth_user_id?: string | null
           created_at?: string
           email: string
-          handicap?: number | null
           id?: string
           is_admin?: boolean
           name: string
@@ -58,7 +83,6 @@ export type Database = {
           auth_user_id?: string | null
           created_at?: string
           email?: string
-          handicap?: number | null
           id?: string
           is_admin?: boolean
           name?: string
@@ -82,6 +106,13 @@ export type Database = {
           tee_time_group?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "round_players_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "player_handicaps"
+            referencedColumns: ["player_id"]
+          },
           {
             foreignKeyName: "round_players_player_id_fkey"
             columns: ["player_id"]
@@ -162,6 +193,13 @@ export type Database = {
             foreignKeyName: "scores_player_id_fkey"
             columns: ["player_id"]
             isOneToOne: false
+            referencedRelation: "player_handicaps"
+            referencedColumns: ["player_id"]
+          },
+          {
+            foreignKeyName: "scores_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
             referencedRelation: "players"
             referencedColumns: ["id"]
           },
@@ -183,6 +221,16 @@ export type Database = {
       }
     }
     Views: {
+      player_handicaps: {
+        Row: {
+          handicap: number | null
+          minimum_rounds: number | null
+          name: string | null
+          player_id: string | null
+          rounds_in_window: number | null
+        }
+        Relationships: []
+      }
       standings: {
         Row: {
           name: string | null

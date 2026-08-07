@@ -3,15 +3,17 @@
 import { useMemo, useState } from "react";
 import type { Tables } from "@/lib/supabase/types";
 
-type Player = Pick<Tables<"players">, "id" | "name" | "handicap">;
+type Player = Pick<Tables<"player_handicaps">, "player_id" | "name" | "handicap">;
 
 export default function RosterList({ players }: { players: Player[] }) {
   const [query, setQuery] = useState("");
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    const list = q ? players.filter((p) => p.name.toLowerCase().includes(q)) : players;
-    return [...list].sort((a, b) => a.name.localeCompare(b.name));
+    const list = q
+      ? players.filter((p) => (p.name ?? "").toLowerCase().includes(q))
+      : players;
+    return [...list].sort((a, b) => (a.name ?? "").localeCompare(b.name ?? ""));
   }, [players, query]);
 
   return (
@@ -46,7 +48,7 @@ export default function RosterList({ players }: { players: Player[] }) {
       ) : (
         <ul className="divide-y divide-fairway-100 overflow-hidden rounded-xl border border-fairway-200 bg-white">
           {filtered.map((player) => (
-            <li key={player.id} className="flex items-center justify-between px-4 py-3">
+            <li key={player.player_id} className="flex items-center justify-between px-4 py-3">
               <span className="font-medium text-fairway-800">{player.name}</span>
               <span className="text-sm text-fairway-500">
                 {player.handicap !== null ? player.handicap : "—"}
