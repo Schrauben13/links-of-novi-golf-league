@@ -125,7 +125,7 @@ export default function LiveLeaderboard({
                 <div>
                   <p className="text-base font-semibold text-fairway-800">{row.player.name}</p>
                   <p className="text-xs text-fairway-500">
-                    Thru {row.thru === 18 ? "F" : row.thru}
+                    Thru {row.thru === holes.length ? "F" : row.thru}
                   </p>
                 </div>
               </div>

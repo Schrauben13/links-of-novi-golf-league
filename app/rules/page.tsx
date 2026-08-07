@@ -53,7 +53,7 @@ export default async function RulesPage() {
       <section className="flex flex-col gap-3">
         <h2 className="text-lg font-semibold text-fairway-800">Season standings</h2>
         <p className="text-sm text-fairway-600">
-          For every completed round where you post a full 18-hole score, you&rsquo;re ranked
+          For every completed round where you post a full 9-hole score, you&rsquo;re ranked
           against the field by total gross strokes and awarded points by finish:
         </p>
         <div className="overflow-x-auto rounded-xl border border-fairway-200 bg-white">

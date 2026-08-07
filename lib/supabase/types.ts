@@ -19,16 +19,25 @@ export type Database = {
           course_name: string
           hole_number: number
           par: number
+          stroke_index: number
+          yards_blue: number | null
+          yards_white: number | null
         }
         Insert: {
           course_name: string
           hole_number: number
           par: number
+          stroke_index: number
+          yards_blue?: number | null
+          yards_white?: number | null
         }
         Update: {
           course_name?: string
           hole_number?: number
           par?: number
+          stroke_index?: number
+          yards_blue?: number | null
+          yards_white?: number | null
         }
         Relationships: []
       }
