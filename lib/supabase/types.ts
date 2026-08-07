@@ -197,6 +197,7 @@ export type Database = {
       approve_player: { Args: { target_player_id: string }; Returns: undefined }
       current_player_id: { Args: never; Returns: string }
       is_admin: { Args: never; Returns: boolean }
+      points_for_position: { Args: { pos: number }; Returns: number }
     }
     Enums: {
       round_status: "upcoming" | "live" | "completed"
