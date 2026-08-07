@@ -13,11 +13,19 @@ export default async function ProfilePage({
   const { player } = await requireApprovedPlayer("/profile");
 
   const supabase = await createClient();
-  const { data: handicap } = await supabase
-    .from("player_handicaps")
-    .select("handicap, rounds_in_window, minimum_rounds")
-    .eq("player_id", player.id)
-    .single();
+  const [{ data: handicap }, { data: history }] = await Promise.all([
+    supabase
+      .from("player_handicaps")
+      .select("handicap, rounds_in_window, minimum_rounds")
+      .eq("player_id", player.id)
+      .single(),
+    supabase
+      .from("handicap_history")
+      .select("handicap, recorded_at")
+      .eq("player_id", player.id)
+      .order("recorded_at", { ascending: false })
+      .limit(8),
+  ]);
 
   return (
     <div className="mx-auto flex w-full max-w-sm flex-col gap-6 py-6">
@@ -49,6 +57,42 @@ export default async function ProfilePage({
           </p>
         </div>
       </div>
+
+      {history && history.length > 0 && (
+        <div className="flex flex-col gap-3 rounded-xl border border-fairway-200 bg-white p-4">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-fairway-500">
+            Handicap trend
+          </h2>
+          <ul className="flex flex-col gap-1.5">
+            {history.map((row, i) => {
+              const prev = history[i + 1];
+              const delta = prev ? row.handicap - prev.handicap : null;
+              return (
+                <li
+                  key={row.recorded_at}
+                  className="flex items-center justify-between text-sm text-fairway-700"
+                >
+                  <span>
+                    {new Date(row.recorded_at).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    })}
+                  </span>
+                  <span className="flex items-center gap-2">
+                    <span className="font-semibold text-fairway-800">{row.handicap}</span>
+                    {delta !== null && delta !== 0 && (
+                      <span className={delta < 0 ? "text-fairway-600" : "text-accent-dark"}>
+                        {delta < 0 ? "▼" : "▲"} {Math.abs(delta).toFixed(1)}
+                      </span>
+                    )}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
 
       <div className="flex flex-col gap-4 rounded-xl border border-fairway-200 bg-white p-4">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-fairway-500">

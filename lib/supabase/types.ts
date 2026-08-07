@@ -41,6 +41,52 @@ export type Database = {
         }
         Relationships: []
       }
+      handicap_history: {
+        Row: {
+          handicap: number
+          id: string
+          player_id: string
+          recorded_at: string
+          rounds_in_window: number
+        }
+        Insert: {
+          handicap: number
+          id?: string
+          player_id: string
+          recorded_at?: string
+          rounds_in_window: number
+        }
+        Update: {
+          handicap?: number
+          id?: string
+          player_id?: string
+          recorded_at?: string
+          rounds_in_window?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "handicap_history_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "player_handicaps"
+            referencedColumns: ["player_id"]
+          },
+          {
+            foreignKeyName: "handicap_history_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "player_stats"
+            referencedColumns: ["player_id"]
+          },
+          {
+            foreignKeyName: "handicap_history_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       handicap_settings: {
         Row: {
           best_count: number
@@ -496,6 +542,47 @@ export type Database = {
         }
         Relationships: []
       }
+      player_round_scores: {
+        Row: {
+          course_name: string | null
+          date: string | null
+          differential: number | null
+          gross_strokes: number | null
+          par: number | null
+          player_id: string | null
+          round_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scores_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "player_handicaps"
+            referencedColumns: ["player_id"]
+          },
+          {
+            foreignKeyName: "scores_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "player_stats"
+            referencedColumns: ["player_id"]
+          },
+          {
+            foreignKeyName: "scores_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scores_round_id_fkey"
+            columns: ["round_id"]
+            isOneToOne: false
+            referencedRelation: "rounds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       player_stats: {
         Row: {
           handicap: number | null
@@ -527,6 +614,7 @@ export type Database = {
       approve_player: { Args: { target_player_id: string }; Returns: undefined }
       current_player_id: { Args: never; Returns: string }
       is_admin: { Args: never; Returns: boolean }
+      recalculate_handicaps: { Args: never; Returns: undefined }
       set_player_team: {
         Args: { new_team_id: string; target_player_id: string }
         Returns: undefined

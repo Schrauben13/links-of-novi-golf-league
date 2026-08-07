@@ -62,3 +62,18 @@ export async function updateHandicapSettings(formData: FormData) {
   revalidatePath("/profile");
   redirect("/admin/handicap-settings?message=Settings updated.");
 }
+
+export async function recalculateHandicaps() {
+  await requireAdmin("/admin/handicap-settings");
+
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("recalculate_handicaps");
+
+  if (error) {
+    redirect(`/admin/handicap-settings?message=${encodeURIComponent(error.message)}`);
+  }
+
+  revalidatePath("/admin/handicap-settings");
+  revalidatePath("/profile");
+  redirect("/admin/handicap-settings?message=Handicaps recalculated and logged to history.");
+}

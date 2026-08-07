@@ -1,6 +1,6 @@
 import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { updateHandicapSettings } from "./actions";
+import { updateHandicapSettings, recalculateHandicaps } from "./actions";
 import SubmitButton from "@/components/submit-button";
 
 export default async function HandicapSettingsPage({
@@ -11,10 +11,18 @@ export default async function HandicapSettingsPage({
   await requireAdmin("/admin/handicap-settings");
 
   const supabase = await createClient();
-  const { data: settings } = await supabase
-    .from("handicap_settings")
-    .select("lookback_rounds, minimum_rounds, best_count, percentage_factor")
-    .single();
+  const [{ data: settings }, { data: lastRecalc }] = await Promise.all([
+    supabase
+      .from("handicap_settings")
+      .select("lookback_rounds, minimum_rounds, best_count, percentage_factor")
+      .single(),
+    supabase
+      .from("handicap_history")
+      .select("recorded_at")
+      .order("recorded_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+  ]);
 
   return (
     <div className="mx-auto flex w-full max-w-sm flex-col gap-6 py-6">
@@ -105,6 +113,34 @@ export default async function HandicapSettingsPage({
           Save
         </SubmitButton>
       </form>
+
+      <div className="flex flex-col gap-3 rounded-xl border border-fairway-200 bg-white p-4">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-fairway-500">
+          Handicap history
+        </h2>
+        <p className="text-sm text-fairway-600">
+          Handicaps shown across the app are always live &mdash; this doesn&rsquo;t change that.
+          Recalculating just logs a snapshot of everyone&rsquo;s current handicap so players can
+          see their trend over time on their profile.
+        </p>
+        <p className="text-xs text-fairway-400">
+          Last recalculated:{" "}
+          {lastRecalc
+            ? new Date(lastRecalc.recorded_at).toLocaleString("en-US", {
+                dateStyle: "medium",
+                timeStyle: "short",
+              })
+            : "never"}
+        </p>
+        <form action={recalculateHandicaps}>
+          <SubmitButton
+            pendingText="Recalculating…"
+            className="w-full rounded-lg border border-fairway-200 px-4 py-3 text-sm font-medium text-fairway-700"
+          >
+            Recalculate handicaps
+          </SubmitButton>
+        </form>
+      </div>
     </div>
   );
 }
